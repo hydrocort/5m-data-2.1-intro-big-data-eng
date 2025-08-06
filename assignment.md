@@ -16,6 +16,20 @@ Answer:
 
 ```python
 
+results = movies.find({
+                        "plot": {
+                            "$regex": "^war", # The ^ symbol means the string must start with the pattern
+                            "$options": "i"  # case-insensitive
+                        }
+                    }).sort('released', pymongo.ASCENDING).limit(5)
+
+for movie in results:
+    print(f"ID: {movie['_id']}")
+    print(f"Title: {movie['title']}")
+    print(f"Plot: {movie['plot']}")
+    print(f"Released: {movie['released']}")
+    print("-" * 50)
+
 ```
 
 ### Question 2
@@ -25,6 +39,22 @@ Question: Group by `rated` and count the number of movies in each.
 Answer:
 
 ```python
+# Group by 'rated' field and count movies in each category
+pipeline = [
+    {
+        "$group": {
+            "_id": "$rated",           # Group by the 'rated' field
+            "movie_count": {"$sum": 1} # Count movies in each group
+        }
+    }
+]
+
+results = movies.aggregate(pipeline)
+
+# Print the results
+for rating_summary in results:
+    print(f"Rating: {rating_summary['_id']} - Movies: {rating_summary['movie_count']}")
+
 
 ```
 
@@ -35,6 +65,55 @@ Question: Count the number of movies with 3 comments or more.
 Answer:
 
 ```python
+
+# Look up related documents in the 'comments' collection:
+stage_lookup_comments = {
+   "$lookup": {
+         "from": "comments", # the collection to lookup and join with 
+         "localField": "_id", # id in movies collection to use to match in comments collection
+         "foreignField": "movie_id", # the movie id in the comments collection
+         "as": "related_comments", # new field name to store the related comments in movies collection
+   }
+}
+
+# Limit to the first 5 documents:
+stage_limit_5 = { "$limit": 5 }
+
+# Calculate the number of comments for each movie:
+stage_add_comment_count = {
+   "$addFields": {
+         "comment_count": {
+            "$size": "$related_comments"
+         }
+   } 
+}
+
+# Match movie documents with at least 1 comment:
+stage_match_with_comments = {
+   "$match": {
+         "comment_count": {
+            "$gte": 3,
+         }
+   } 
+}
+
+pipeline = [
+   stage_lookup_comments,
+   stage_add_comment_count,
+   stage_match_with_comments,
+   stage_limit_5, # have to limit or it will time out
+]
+
+results = movies.aggregate(pipeline)
+for movie in results:
+   print(movie["title"])
+   print("Comment count:", movie["comment_count"])
+
+   for comment in movie["related_comments"][:5]:
+         print(" * {name}: {text}".format(
+            name=comment["name"],
+            text=comment["text"]))
+   print()
 
 ```
 

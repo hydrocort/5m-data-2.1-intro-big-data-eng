@@ -16,13 +16,15 @@ Answer:
 
 ```python
 
+# find first 5 movies with plot starting with 'war', then sort by released date in ascending order
 results = movies.find({
                         "plot": {
                             "$regex": "^war", # The ^ symbol means the string must start with the pattern
                             "$options": "i"  # case-insensitive
                         }
-                    }).sort('released', pymongo.ASCENDING).limit(5)
+                    }).sort('released', pymongo.ASCENDING).limit(5) #alternative use 1 for ascending and -1 for descending
 
+# print the results line by line with a separator
 for movie in results:
     print(f"ID: {movie['_id']}")
     print(f"Title: {movie['title']}")
@@ -53,8 +55,9 @@ results = movies.aggregate(pipeline)
 
 # Print the results
 for rating_summary in results:
-    print(f"Rating: {rating_summary['_id']} - Movies: {rating_summary['movie_count']}")
-
+    print(f"Rating: {rating_summary['_id']}")
+    print(f"Movies: {rating_summary['movie_count']}")
+    print("-" * 20)
 
 ```
 

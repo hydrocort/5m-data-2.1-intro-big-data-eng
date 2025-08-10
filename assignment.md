@@ -80,7 +80,8 @@ pipeline = [
     },
     {
         "$addFields": {
-            "comment_count": {"$size": "$related_comments"}
+            # returns the number of elements in "related_comments" as new field "comment_count"
+            "comment_count": {"$size": "$related_comments"} 
         }
     },
     {
@@ -94,17 +95,6 @@ pipeline = [
         "$limit": 5 # have to limit or it will time out
     }
 ]
-
-results = movies.aggregate(pipeline)
-for movie in results:
-   print(movie["title"])
-   print("Comment count:", movie["comment_count"])
-
-   for comment in movie["related_comments"][:5]:
-         print(" * {name}: {text}".format(
-            name=comment["name"],
-            text=comment["text"]))
-   print()
 
 ```
 

@@ -69,43 +69,8 @@ Answer:
 
 ```python
 
-pipeline = [
-    {
-        "$lookup": {
-            "from": "comments", # the collection to lookup and join with 
-            "localField": "_id", # id in movies collection to use to match in comments collection
-            "foreignField": "movie_id", # the movie id in the comments collection
-            "as": "related_comments", # new field name to store the related comments in movies collection
-        }
-    },
-    {
-        "$addFields": {
-            # returns the number of elements in "related_comments" as new field "comment_count"
-            "comment_count": {"$size": "$related_comments"} 
-        }
-    },
-    {
-        "$match": {
-            "comment_count": {
-                "$gte": 3,
-            }
-        }
-    },
-    {
-        "$limit": 5 # have to limit or it will time out
-    }
-]
-
-results = movies.aggregate(pipeline)
-for movie in results:
-   print("Movie title: ", movie["title"])
-   print("Comment count: ", movie["comment_count"])
-
-   for comment in movie["related_comments"][:5]:
-         print(" * {name}: {text}".format(
-            name=comment["name"],
-            text=comment["text"]))
-   print()
+count = movies.count_documents({"num_mflix_comments": {"$gte": 3}})
+print(count)
 
 ```
 

@@ -96,7 +96,20 @@ pipeline = [
     }
 ]
 
+results = movies.aggregate(pipeline)
+for movie in results:
+   print("Movie title: ", movie["title"])
+   print("Comment count: ", movie["comment_count"])
+
+   for comment in movie["related_comments"][:5]:
+         print(" * {name}: {text}".format(
+            name=comment["name"],
+            text=comment["text"]))
+   print()
+
 ```
+
+
 
 ## Submission
 
